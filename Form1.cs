@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -13,72 +14,68 @@ namespace PaintAppWinforms
 
     public partial class Form1 : Form
     {
-        List<Shape> shapes;
-        private List<Line> lines;
+        private List<Shape> shapes;
         private Line currentLine = null;
-        private List<Circle> circles;
-        private List<Rectangle> rectangles;
         private Circle currentCircle = null;
         private Rectangle currentRectangle = null;
         private int LineWeight;
-        int LineStyle;
-        Pen pen;
-        Color penColor;
+        private int LineStyle;
+        private Pen pen;
+        private Color penColor;
+        private int selectedShape;
+        private Point startPoint;
+        private Point endPoint;
         enum Shapes
         {
             Line,
             Circle,
             Rectangle
         }
-        int selectedShape;
 
+        Shapes shapeTypes;
         public Form1()
         {
             InitializeComponent();
-            this.lines = new List<Line>();
-            this.circles = new List<Circle>();
-            this.rectangles = new List<Rectangle>();
-            this.shapes = new List<Shape>();
             this.selectedShape = (int)Shapes.Line;
+            this.shapeTypes = (Shapes)selectedShape;
+            this.shapes = new List<Shape> { };
+            this.pen = new Pen(Brushes.Black, 2);
+            this.startPoint = new Point(0, 0);
+            this.endPoint = new Point(0, 0);
         }
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            Shapes shape = (Shapes)selectedShape;
-            switch (shape)
+            this.startPoint.X = e.X;
+            this.startPoint.Y = e.Y;
+            switch (this.shapeTypes)
             {
                 case Shapes.Line:
-                    this.currentLine = new Line();
-                    currentLine.start = new Point(e.X, e.Y);
+                    this.currentLine = new Line(pen, startPoint, endPoint);
                     break;
                 case Shapes.Circle:
-                    this.currentCircle = new Circle();
-                    currentCircle.start = new Point(e.X, e.Y);
+                    this.currentCircle = new Circle(pen, startPoint, endPoint);
                     break;
                 case Shapes.Rectangle:
-                    this.currentRectangle = new Rectangle();
-                    currentRectangle.start = new Point(e.X, e.Y);
+                    this.currentRectangle = new Rectangle(pen, startPoint, endPoint);
                     break;
-
             }
-
-
         }
         private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
-
-            Shapes shape = (Shapes)selectedShape;
-            switch (shape)
+            this.endPoint.X = e.X;
+            this.endPoint.Y = e.Y;
+            switch (this.shapeTypes)
             {
                 case Shapes.Line:
-                    currentLine.end = new Point(e.X, e.Y);
+                    currentLine.End = this.endPoint;
                     this.shapes.Add(currentLine);
                     break;
                 case Shapes.Circle:
-                    currentCircle.end = new Point(e.X, e.Y);
+                    currentCircle.End = this.endPoint;
                     this.shapes.Add(currentCircle);
                     break;
                 case Shapes.Rectangle:
-                    currentRectangle.end = new Point(e.X, e.Y);
+                    currentRectangle.End = this.endPoint;
                     this.shapes.Add(currentRectangle);
                     break;
 
@@ -104,36 +101,20 @@ namespace PaintAppWinforms
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            pen = new Pen(Brushes.Black, this.LineWeight);
             pen.Color = this.penColor;
-            if (LineStyle == 0)//dashed
-            {
-                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
-            }
-            else if (LineStyle == 1)//dotted
-            {
-                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
-            }
-            else //solid
-            {
-                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Solid;
-
-            }
-            Shapes shape = (Shapes)selectedShape;
-
-            foreach (var i in this.shapes)
+            foreach (var shape in shapes)
             {
                 if (shape.GetType() == typeof(Line))
                 {
-                    g.DrawLine(pen, i.start.X, i.start.Y, i.end.X, i.end.Y);
+                    g.DrawLine(shape.Pen, shape.Start.X, shape.Start.Y, shape.End.X, shape.End.Y);
                 }
                 else if (shape.GetType() == typeof(Circle))
                 {
-                    g.DrawEllipse(pen, i.start.X, i.start.Y, i.end.X, i.end.Y);
+                    g.DrawEllipse(shape.Pen, shape.Start.X, shape.Start.Y, shape.End.X, shape.End.Y);
                 }
                 else if (shape.GetType() == typeof(Rectangle))
                 {
-                    g.DrawRectangle(pen, i.start.X, i.start.Y, i.end.X, i.end.Y);
+                    g.DrawRectangle(shape.Pen, shape.Start.X, shape.Start.Y, shape.End.X, shape.End.Y);
                 }
 
             }
@@ -147,14 +128,26 @@ namespace PaintAppWinforms
 
         private void lineWeight_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string selectedItem = lineWeight.Items[lineWeight.SelectedIndex].ToString();
-            this.LineWeight = Int32.Parse(selectedItem);
+            this.LineWeight = Int32.Parse(lineWeight.Items[lineWeight.SelectedIndex].ToString());
+            this.pen.Width = this.LineWeight;
         }
 
         private void lineStyle_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string selectedLineStyle = lineStyle.Items[lineStyle.SelectedIndex].ToString();
             this.LineStyle = lineStyle.SelectedIndex;
+            if (LineStyle == 0)//dashed
+            {
+                this.pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
+            }
+            else if (LineStyle == 1)//dotted
+            {
+                this.pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+            }
+            else //solid
+            {
+                this.pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Solid;
+
+            }
         }
 
         private void button1_Click_1(object sender, EventArgs e)
@@ -165,16 +158,19 @@ namespace PaintAppWinforms
         private void circleButton_Click(object sender, EventArgs e)
         {
             this.selectedShape = (int)Shapes.Circle;
+            this.shapeTypes = (Shapes)selectedShape;
         }
 
         private void lineButton_Click(object sender, EventArgs e)
         {
             this.selectedShape = (int)Shapes.Line;
+            this.shapeTypes = (Shapes)selectedShape;
         }
 
         private void rectangleButton_Click(object sender, EventArgs e)
         {
             this.selectedShape = (int)Shapes.Rectangle;
+            this.shapeTypes = (Shapes)selectedShape;
         }
 
         private void button5_Click(object sender, EventArgs e)
@@ -194,28 +190,39 @@ namespace PaintAppWinforms
 
     }
 
-
     public abstract class Shape
     {
         public Pen Pen { get; set; }
-        public Point start { get; set; }
-        public Point end { get; set; }
-    }
-    public class Line : Shape
-    {
-        public Point start;
-        public Point end;
+        public Point Start { get; set; }
+        public Point End { get; set; }
     }
 
+    public class Line : Shape
+    {
+        public Line(Pen pen, Point start, Point end)
+        {
+            this.Pen = pen;
+            this.Start = start;
+            this.End = end;
+        }
+    }
     public class Circle : Shape
     {
-        public Point start;
-        public Point end;
+        public Circle(Pen pen, Point start, Point end)
+        {
+            this.Pen = pen;
+            this.Start = start;
+            this.End = end;
+        }
     }
     public class Rectangle : Shape
     {
-        public Point start;
-        public Point end;
+        public Rectangle(Pen pen, Point start, Point end)
+        {
+            this.Pen = pen;
+            this.Start = start;
+            this.End = end;
+        }
     }
 
 }
