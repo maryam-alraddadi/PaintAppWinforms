@@ -30,15 +30,16 @@ namespace PaintAppWinforms
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
+            this.rectangleButton = new System.Windows.Forms.Button();
+            this.lineButton = new System.Windows.Forms.Button();
+            this.circleButton = new System.Windows.Forms.Button();
             this.button6 = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.panel2 = new System.Windows.Forms.Panel();
             this.lineStyle = new System.Windows.Forms.ListBox();
             this.lineWeight = new System.Windows.Forms.ListBox();
-            this.circleButton = new System.Windows.Forms.Button();
-            this.lineButton = new System.Windows.Forms.Button();
-            this.rectangleButton = new System.Windows.Forms.Button();
+            this.selectModeButton = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
@@ -57,6 +58,36 @@ namespace PaintAppWinforms
             this.panel1.Size = new System.Drawing.Size(1270, 70);
             this.panel1.TabIndex = 0;
             this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
+            // 
+            // rectangleButton
+            // 
+            this.rectangleButton.Location = new System.Drawing.Point(637, 12);
+            this.rectangleButton.Name = "rectangleButton";
+            this.rectangleButton.Size = new System.Drawing.Size(104, 54);
+            this.rectangleButton.TabIndex = 6;
+            this.rectangleButton.Text = "rectangle";
+            this.rectangleButton.UseVisualStyleBackColor = true;
+            this.rectangleButton.Click += new System.EventHandler(this.rectangleButton_Click);
+            // 
+            // lineButton
+            // 
+            this.lineButton.Location = new System.Drawing.Point(409, 20);
+            this.lineButton.Name = "lineButton";
+            this.lineButton.Size = new System.Drawing.Size(104, 47);
+            this.lineButton.TabIndex = 5;
+            this.lineButton.Text = "line";
+            this.lineButton.UseVisualStyleBackColor = true;
+            this.lineButton.Click += new System.EventHandler(this.lineButton_Click);
+            // 
+            // circleButton
+            // 
+            this.circleButton.Location = new System.Drawing.Point(181, 20);
+            this.circleButton.Name = "circleButton";
+            this.circleButton.Size = new System.Drawing.Size(75, 37);
+            this.circleButton.TabIndex = 4;
+            this.circleButton.Text = "Circle";
+            this.circleButton.UseVisualStyleBackColor = true;
+            this.circleButton.Click += new System.EventHandler(this.circleButton_Click);
             // 
             // button6
             // 
@@ -84,6 +115,7 @@ namespace PaintAppWinforms
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.selectModeButton);
             this.panel2.Controls.Add(this.lineStyle);
             this.panel2.Controls.Add(this.lineWeight);
             this.panel2.Location = new System.Drawing.Point(1087, 78);
@@ -120,35 +152,15 @@ namespace PaintAppWinforms
             this.lineWeight.TabIndex = 0;
             this.lineWeight.SelectedIndexChanged += new System.EventHandler(this.lineWeight_SelectedIndexChanged);
             // 
-            // circleButton
+            // selectModeButton
             // 
-            this.circleButton.Location = new System.Drawing.Point(181, 20);
-            this.circleButton.Name = "circleButton";
-            this.circleButton.Size = new System.Drawing.Size(75, 37);
-            this.circleButton.TabIndex = 4;
-            this.circleButton.Text = "Circle";
-            this.circleButton.UseVisualStyleBackColor = true;
-            this.circleButton.Click += new System.EventHandler(this.circleButton_Click);
-            // 
-            // lineButton
-            // 
-            this.lineButton.Location = new System.Drawing.Point(409, 20);
-            this.lineButton.Name = "lineButton";
-            this.lineButton.Size = new System.Drawing.Size(104, 47);
-            this.lineButton.TabIndex = 5;
-            this.lineButton.Text = "line";
-            this.lineButton.UseVisualStyleBackColor = true;
-            this.lineButton.Click += new System.EventHandler(this.lineButton_Click);
-            // 
-            // rectangleButton
-            // 
-            this.rectangleButton.Location = new System.Drawing.Point(637, 12);
-            this.rectangleButton.Name = "rectangleButton";
-            this.rectangleButton.Size = new System.Drawing.Size(104, 54);
-            this.rectangleButton.TabIndex = 6;
-            this.rectangleButton.Text = "rectangle";
-            this.rectangleButton.UseVisualStyleBackColor = true;
-            this.rectangleButton.Click += new System.EventHandler(this.rectangleButton_Click);
+            this.selectModeButton.Location = new System.Drawing.Point(50, 270);
+            this.selectModeButton.Name = "selectModeButton";
+            this.selectModeButton.Size = new System.Drawing.Size(74, 56);
+            this.selectModeButton.TabIndex = 2;
+            this.selectModeButton.Text = "select";
+            this.selectModeButton.UseVisualStyleBackColor = true;
+            this.selectModeButton.Click += new System.EventHandler(this.selectModeButton_Click);
             // 
             // Form1
             // 
@@ -163,6 +175,7 @@ namespace PaintAppWinforms
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
+            this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseClick);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseUp);
@@ -183,6 +196,7 @@ namespace PaintAppWinforms
         private System.Windows.Forms.Button circleButton;
         private System.Windows.Forms.Button rectangleButton;
         private System.Windows.Forms.Button lineButton;
+        private System.Windows.Forms.Button selectModeButton;
     }
 }
 

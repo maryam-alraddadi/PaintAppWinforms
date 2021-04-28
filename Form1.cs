@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,6 +26,9 @@ namespace PaintAppWinforms
         private int selectedShape;
         private Point startPoint;
         private Point endPoint;
+        GraphicsPath p;
+        bool selectMode;
+        bool drawMode;
         enum Shapes
         {
             Line,
@@ -45,44 +49,49 @@ namespace PaintAppWinforms
         }
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            this.startPoint.X = e.X;
-            this.startPoint.Y = e.Y;
-            switch (this.shapeTypes)
+            if (drawMode)
             {
-                case Shapes.Line:
-                    this.currentLine = new Line(pen, startPoint, endPoint);
-                    break;
-                case Shapes.Circle:
-                    this.currentCircle = new Circle(pen, startPoint, endPoint);
-                    break;
-                case Shapes.Rectangle:
-                    this.currentRectangle = new Rectangle(pen, startPoint, endPoint);
-                    break;
+                this.startPoint.X = e.X;
+                this.startPoint.Y = e.Y;
+                switch (this.shapeTypes)
+                {
+                    case Shapes.Line:
+                        this.currentLine = new Line(getPenStyle(), startPoint, endPoint);
+                        break;
+                    case Shapes.Circle:
+                        this.currentCircle = new Circle(getPenStyle(), startPoint, endPoint);
+                        break;
+                    case Shapes.Rectangle:
+                        this.currentRectangle = new Rectangle(getPenStyle(), startPoint, endPoint);
+                        break;
+                }
             }
         }
         private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
-            this.endPoint.X = e.X;
-            this.endPoint.Y = e.Y;
-            switch (this.shapeTypes)
+            if (drawMode)
             {
-                case Shapes.Line:
-                    currentLine.End = this.endPoint;
-                    this.shapes.Add(currentLine);
-                    break;
-                case Shapes.Circle:
-                    currentCircle.End = this.endPoint;
-                    this.shapes.Add(currentCircle);
-                    break;
-                case Shapes.Rectangle:
-                    currentRectangle.End = this.endPoint;
-                    this.shapes.Add(currentRectangle);
-                    break;
+                this.endPoint.X = e.X;
+                this.endPoint.Y = e.Y;
+                switch (this.shapeTypes)
+                {
+                    case Shapes.Line:
+                        currentLine.End = this.endPoint;
+                        this.shapes.Add(currentLine);
+                        break;
+                    case Shapes.Circle:
+                        currentCircle.End = this.endPoint;
+                        this.shapes.Add(currentCircle);
+                        break;
+                    case Shapes.Rectangle:
+                        currentRectangle.End = this.endPoint;
+                        this.shapes.Add(currentRectangle);
+                        break;
 
+                }
+
+                this.Invalidate();
             }
-
-            this.Invalidate();
-
         }
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
@@ -101,9 +110,16 @@ namespace PaintAppWinforms
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            pen.Color = this.penColor;
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            if (p != null)
+            {
+                pen.Color = Color.Red;
+                e.Graphics.DrawPath(pen, p);
+            }
+               
             foreach (var shape in shapes)
             {
+                
                 if (shape.GetType() == typeof(Line))
                 {
                     g.DrawLine(shape.Pen, shape.Start.X, shape.Start.Y, shape.End.X, shape.End.Y);
@@ -150,6 +166,14 @@ namespace PaintAppWinforms
             }
         }
 
+        private Pen getPenStyle()
+        {
+            Pen newPen = new Pen(this.pen.Brush, this.pen.Width);
+            newPen.DashStyle = this.pen.DashStyle;
+            newPen.Color = this.penColor;
+            return newPen;
+        }
+
         private void button1_Click_1(object sender, EventArgs e)
         {
 
@@ -159,18 +183,21 @@ namespace PaintAppWinforms
         {
             this.selectedShape = (int)Shapes.Circle;
             this.shapeTypes = (Shapes)selectedShape;
+            this.drawMode = true;
         }
 
         private void lineButton_Click(object sender, EventArgs e)
         {
             this.selectedShape = (int)Shapes.Line;
             this.shapeTypes = (Shapes)selectedShape;
+            this.drawMode = true;
         }
 
         private void rectangleButton_Click(object sender, EventArgs e)
         {
             this.selectedShape = (int)Shapes.Rectangle;
             this.shapeTypes = (Shapes)selectedShape;
+            this.drawMode = true;
         }
 
         private void button5_Click(object sender, EventArgs e)
@@ -180,6 +207,7 @@ namespace PaintAppWinforms
             if (dialogResult == DialogResult.OK)
             {
                 this.penColor = colorDialog1.Color;
+                this.pen.Color = this.penColor;
             }
         }
         private void Form1_Load(object sender, EventArgs e)
@@ -187,7 +215,26 @@ namespace PaintAppWinforms
 
         }
 
+        private void Form1_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (selectMode)
+            {
+                foreach (var shape in shapes)
+                    shape.Pen.Color = shape.HitTest(shape, e.Location) ? Color.Red : Color.Black;
+            this.Invalidate();
+            }
+        }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void selectModeButton_Click(object sender, EventArgs e)
+        {
+            this.selectMode = true;
+            this.drawMode = false;
+        }
     }
 
     public abstract class Shape
@@ -195,6 +242,8 @@ namespace PaintAppWinforms
         public Pen Pen { get; set; }
         public Point Start { get; set; }
         public Point End { get; set; }
+        public abstract bool HitTest(Shape shape, Point Pt);
+        
     }
 
     public class Line : Shape
@@ -205,6 +254,14 @@ namespace PaintAppWinforms
             this.Start = start;
             this.End = end;
         }
+
+        public override bool HitTest(Shape shape, Point Pt)
+        {
+            GraphicsPath myPath = new GraphicsPath();
+            myPath.AddLine(shape.Start.X, shape.Start.Y, shape.End.X, shape.End.Y);
+
+            return myPath.IsVisible(Pt);
+        }
     }
     public class Circle : Shape
     {
@@ -214,6 +271,16 @@ namespace PaintAppWinforms
             this.Start = start;
             this.End = end;
         }
+
+        public override bool HitTest(Shape shape, Point Pt)
+        {
+            
+            System.Drawing.Rectangle myEllipse = new System.Drawing.Rectangle(shape.Start.X, shape.Start.Y, shape.End.X, shape.End.Y);
+            GraphicsPath myPath = new GraphicsPath();
+            myPath.AddEllipse(myEllipse);
+
+            return myPath.IsVisible(Pt);
+        }
     }
     public class Rectangle : Shape
     {
@@ -222,6 +289,15 @@ namespace PaintAppWinforms
             this.Pen = pen;
             this.Start = start;
             this.End = end;
+        }
+
+        public override bool HitTest(Shape shape, Point Pt)
+        {
+            System.Drawing.Rectangle rect = new System.Drawing.Rectangle(shape.Start.X, shape.Start.Y, shape.End.X, shape.End.Y);
+            GraphicsPath myPath = new GraphicsPath();
+            myPath.AddRectangle(rect);
+
+            return myPath.IsVisible(Pt);
         }
     }
 
